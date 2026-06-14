@@ -1,16 +1,14 @@
 const twilio = require("twilio");
 const nodemailer = require("nodemailer");
-
-const {
-  generateTicketId
-} = require("../../utils/ticket");
+const { generateTicketId } = require("../../utils/ticket");
 
 exports.handler = async (event) => {
 
   try {
 
-    const data =
-      JSON.parse(event.body);
+    const data = JSON.parse(event.body);
+
+    console.log("Incoming Payload:", data);
 
     const {
       phone,
@@ -22,7 +20,7 @@ exports.handler = async (event) => {
       generateTicketId();
 
     const company =
-      process.env.COMPANY_NAME;
+      process.env.COMPANY_NAME || "NP Solutions";
 
     const twilioClient =
       twilio(
@@ -37,7 +35,9 @@ exports.handler = async (event) => {
           process.env.SMTP_HOST,
 
         port:
-          process.env.SMTP_PORT,
+          Number(
+            process.env.SMTP_PORT
+          ),
 
         secure:
           false,
@@ -62,6 +62,10 @@ exports.handler = async (event) => {
 
     if (phone) {
 
+      console.log(
+        "Sending WhatsApp..."
+      );
+
       tasks.push(
 
         twilioClient.messages.create({
@@ -79,7 +83,7 @@ exports.handler = async (event) => {
             JSON.stringify({
 
               "1": "Customer",
-              "2": subject,
+              "2": subject || "General Enquiry",
               "3": ticketId,
               "4": company
 
@@ -97,6 +101,10 @@ exports.handler = async (event) => {
 
     if (phone) {
 
+      console.log(
+        "Sending SMS..."
+      );
+
       tasks.push(
 
         twilioClient.messages.create({
@@ -107,8 +115,18 @@ exports.handler = async (event) => {
           to:
             phone,
 
-          body:
-            `Thank you for contacting ${company}. Ticket: ${ticketId}. Subject: ${subject}`
+          contentSid:
+            "HX3a75d9de628c8333559c4c20b4535b87",
+
+          contentVariables:
+            JSON.stringify({
+
+              "1": "Customer",
+              "2": subject || "General Enquiry",
+              "3": ticketId,
+              "4": company
+
+            })
 
         })
 
@@ -121,6 +139,10 @@ exports.handler = async (event) => {
      */
 
     if (email) {
+
+      console.log(
+        "Sending Email..."
+      );
 
       tasks.push(
 
@@ -138,20 +160,31 @@ exports.handler = async (event) => {
           html: `
             <h2>Thank You</h2>
 
-            <p>We received your enquiry.</p>
-
             <p>
-              <b>Subject:</b>
-              ${subject}
+              We have received your enquiry.
             </p>
 
+            <hr>
+
             <p>
-              <b>Reference ID:</b>
+              <strong>Reference ID:</strong>
               ${ticketId}
             </p>
 
             <p>
-              Our team will contact you shortly.
+              <strong>Subject:</strong>
+              ${subject || "General Enquiry"}
+            </p>
+
+            <p>
+              Our team will review your request and contact you shortly.
+            </p>
+
+            <br>
+
+            <p>
+              Regards,<br>
+              ${company}
             </p>
           `
 
@@ -161,7 +194,19 @@ exports.handler = async (event) => {
 
     }
 
-    await Promise.allSettled(tasks);
+    const results =
+      await Promise.allSettled(
+        tasks
+      );
+
+    console.log(
+      "Results:",
+      JSON.stringify(
+        results,
+        null,
+        2
+      )
+    );
 
     return {
 
@@ -170,13 +215,19 @@ exports.handler = async (event) => {
       body: JSON.stringify({
 
         success: true,
-        ticketId
+        ticketId,
+        results
 
       })
 
     };
 
   } catch (err) {
+
+    console.error(
+      "ERROR:",
+      err
+    );
 
     return {
 
