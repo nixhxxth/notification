@@ -20,7 +20,7 @@ exports.handler = async (event) => {
       generateTicketId();
 
     const company =
-      process.env.COMPANY_NAME || "NP Solutions";
+      process.env.COMPANY_NAME;
 
     const twilioClient =
       twilio(
