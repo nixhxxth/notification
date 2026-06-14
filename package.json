@@ -1,0 +1,7 @@
+{
+  "name": "gmail-whatsapp",
+  "version": "1.0.0",
+  "dependencies": {
+    "twilio": "^5.6.0"
+  }
+}
