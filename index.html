@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Contact Form</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+<div class="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8">
+
+```
+<h1 class="text-2xl font-bold text-center mb-2">
+    Contact Us
+</h1>
+
+<p class="text-gray-500 text-center mb-6">
+    Submit your enquiry
+</p>
+
+<form id="contactForm" class="space-y-4">
+
+    <input
+        id="name"
+        type="text"
+        placeholder="Full Name"
+        required
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+    >
+
+    <input
+        id="email"
+        type="email"
+        placeholder="Email Address"
+        required
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+    >
+
+    <input
+        id="phone"
+        type="tel"
+        placeholder="+919876543210"
+        required
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+    >
+
+    <input
+        id="subject"
+        type="text"
+        placeholder="Subject"
+        required
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+    >
+
+    <textarea
+        id="message"
+        rows="5"
+        placeholder="Message"
+        required
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+    ></textarea>
+
+    <button
+        id="submitBtn"
+        type="submit"
+        class="w-full bg-black text-white rounded-lg py-3 font-medium"
+    >
+        Submit
+    </button>
+
+</form>
+
+<div
+    id="result"
+    class="hidden mt-6 p-4 rounded-lg bg-green-100 text-green-800"
+></div>
+```
+
+</div>
+
+<script>
+
+document
+.getElementById("contactForm")
+.addEventListener(
+"submit",
+async (e) => {
+
+    e.preventDefault();
+
+    const btn =
+      document.getElementById(
+        "submitBtn"
+      );
+
+    btn.disabled = true;
+
+    btn.innerText =
+      "Submitting...";
+
+    const payload = {
+
+        name:
+          document.getElementById("name").value,
+
+        email:
+          document.getElementById("email").value,
+
+        phone:
+          document.getElementById("phone").value,
+
+        subject:
+          document.getElementById("subject").value,
+
+        message:
+          document.getElementById("message").value,
+
+        createdAt:
+          new Date().toISOString()
+
+    };
+
+    try {
+
+        /*
+         * Store JSON
+         */
+
+        localStorage.setItem(
+
+            "latest_enquiry",
+
+            JSON.stringify(payload)
+
+        );
+
+        /*
+         * Call Netlify Function
+         */
+
+        const response =
+
+          await fetch(
+
+            "/.netlify/functions/send-acknowledgement",
+
+            {
+
+              method: "POST",
+
+              headers: {
+
+                "Content-Type":
+                  "application/json"
+
+              },
+
+              body:
+                JSON.stringify(payload)
+
+            }
+
+          );
+
+        const data =
+          await response.json();
+
+        const result =
+          document.getElementById(
+            "result"
+          );
+
+        result.classList.remove(
+          "hidden"
+        );
+
+        result.innerHTML =
+
+          `
+
+          <strong>Success</strong>
+
+          <br>
+
+          Ticket ID:
+          ${data.ticketId || "Generated"}
+
+          `;
+
+        document
+          .getElementById(
+            "contactForm"
+          )
+          .reset();
+
+    }
+
+    catch(err) {
+
+        alert(
+          err.message
+        );
+
+    }
+
+    finally {
+
+        btn.disabled = false;
+
+        btn.innerText =
+          "Submit";
+
+    }
+
+});
+
+</script>
+
+</body>
+
+</html>
