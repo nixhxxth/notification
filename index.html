@@ -12,13 +12,18 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 
+<link
+  rel="icon"
+  type="image/x-icon"
+  href="./assets/blk.ico"
+>
+
 </head>
 
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
 <div class="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8">
 
-```
 <h1 class="text-2xl font-bold text-center mb-2">
     Contact Us
 </h1>
@@ -34,7 +39,7 @@
         type="text"
         placeholder="Full Name"
         required
-        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring focus:ring-slate-300"
     >
 
     <input
@@ -42,7 +47,7 @@
         type="email"
         placeholder="Email Address"
         required
-        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring focus:ring-slate-300"
     >
 
     <input
@@ -50,7 +55,7 @@
         type="tel"
         placeholder="+919876543210"
         required
-        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring focus:ring-slate-300"
     >
 
     <input
@@ -58,7 +63,7 @@
         type="text"
         placeholder="Subject"
         required
-        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring focus:ring-slate-300"
     >
 
     <textarea
@@ -66,13 +71,13 @@
         rows="5"
         placeholder="Message"
         required
-        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring"
+        class="w-full border rounded-lg px-4 py-3 outline-none focus:ring focus:ring-slate-300"
     ></textarea>
 
     <button
         id="submitBtn"
         type="submit"
-        class="w-full bg-black text-white rounded-lg py-3 font-medium"
+        class="w-full bg-black text-white rounded-lg py-3 font-medium hover:opacity-90 transition"
     >
         Submit
     </button>
@@ -81,9 +86,29 @@
 
 <div
     id="result"
-    class="hidden mt-6 p-4 rounded-lg bg-green-100 text-green-800"
+    class="hidden mt-6 p-4 rounded-lg"
 ></div>
-```
+
+<p class="mt-6 text-center text-sm text-gray-500">
+
+    Development & Testing by
+
+    <a
+        href="mailto:nishanthpechimuthu@gmail.com"
+        class="inline-flex items-center gap-2 font-medium hover:underline"
+    >
+
+        NP / BLK
+
+        <img
+            src="./assets/blk.png"
+            alt="BLK"
+            class="h-5 w-5"
+        >
+
+    </a>
+
+</p>
 
 </div>
 
@@ -102,27 +127,36 @@ async (e) => {
         "submitBtn"
       );
 
+    const result =
+      document.getElementById(
+        "result"
+      );
+
     btn.disabled = true;
 
     btn.innerText =
       "Submitting...";
 
+    result.classList.add(
+      "hidden"
+    );
+
     const payload = {
 
         name:
-          document.getElementById("name").value,
+          document.getElementById("name").value.trim(),
 
         email:
-          document.getElementById("email").value,
+          document.getElementById("email").value.trim(),
 
         phone:
-          document.getElementById("phone").value,
+          document.getElementById("phone").value.trim(),
 
         subject:
-          document.getElementById("subject").value,
+          document.getElementById("subject").value.trim(),
 
         message:
-          document.getElementById("message").value,
+          document.getElementById("message").value.trim(),
 
         createdAt:
           new Date().toISOString()
@@ -130,22 +164,6 @@ async (e) => {
     };
 
     try {
-
-        /*
-         * Store JSON
-         */
-
-        localStorage.setItem(
-
-            "latest_enquiry",
-
-            JSON.stringify(payload)
-
-        );
-
-        /*
-         * Call Netlify Function
-         */
 
         const response =
 
@@ -174,26 +192,29 @@ async (e) => {
         const data =
           await response.json();
 
-        const result =
-          document.getElementById(
-            "result"
+        if (!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "Request failed"
           );
+
+        }
 
         result.classList.remove(
           "hidden"
         );
 
+        result.className =
+          "mt-6 p-4 rounded-lg bg-green-100 text-green-800";
+
         result.innerHTML =
 
           `
-
-          <strong>Success</strong>
-
+          <strong>Request Submitted Successfully</strong>
           <br>
-
           Ticket ID:
           ${data.ticketId || "Generated"}
-
           `;
 
         document
@@ -206,9 +227,20 @@ async (e) => {
 
     catch(err) {
 
-        alert(
-          err.message
+        result.classList.remove(
+          "hidden"
         );
+
+        result.className =
+          "mt-6 p-4 rounded-lg bg-red-100 text-red-800";
+
+        result.innerHTML =
+
+          `
+          <strong>Submission Failed</strong>
+          <br>
+          ${err.message}
+          `;
 
     }
 
